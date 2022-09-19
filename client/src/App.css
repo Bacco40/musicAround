@@ -1,0 +1,66 @@
+.App, #root, body{
+    margin: 0;
+    font-family: Ubuntu, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    background-color: #f0f2f5;
+    height: 100%;
+    min-height: 100vh;
+    background-color: #1d2432;
+}
+nav{
+    background-color: black;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .1), 0 4px 8px rgba(0, 0, 0, .1);
+}
+.logoContainer{
+    height: 60px;
+    display: flex;
+}
+.navSearch{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: black;
+  }
+  .searchIcon{
+    position: relative;
+    left: 30px;
+  }
+  .search{
+    padding: 8px 10px;
+    padding-left: 40px;
+    background-color: #ffff;
+    border: 0;
+    border-radius: 20px;
+    width: 400px;
+    font-size: 18px;
+  }
+  .search::placeholder{
+    color: black;
+    opacity: 1;
+  }
+  .logIn{
+    color: #ffff;
+    display: flex;
+    gap: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    padding-right: 15px;
+    align-items: center;
+  }
+  .profileIcon{
+    height: 40px;
+    width: 40px;
+    background-color: #ffff;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .icon{
+    color: black;
+  }
