@@ -4,7 +4,7 @@ import {Link} from 'react-router-dom';
 
 function SingleElement({singleElement}){
     return(
-        <Link to={'/'} className='singleElementContainer'>
+        <Link to={`/event/${singleElement.id}`} className='singleElementContainer'>
             <img className="eventPic" src={
                 singleElement.images[0].width === 1024 ? singleElement.images[0].url : 
                 singleElement.images[1].width === 1024 ? singleElement.images[1].url :
