@@ -3,15 +3,19 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import { format } from 'date-fns';
 import Countdown from "react-countdown";
+import Map from './Map';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import {faCalendarDays, faLocationDot} from '@fortawesome/free-solid-svg-icons';
-library.add(faLocationDot, faCalendarDays);
+import {faCalendarDays, faCheck, faLocationDot, faShareNodes} from '@fortawesome/free-solid-svg-icons';
+import {faHeart} from '@fortawesome/free-regular-svg-icons'
+library.add(faLocationDot, faCalendarDays,faHeart,faShareNodes,faCheck);
 
 
 function EventDetail(){
     const [event,setEvent] = useState(null);
     const {id} = useParams();
+    const [location,setLocation] = useState(null);
+    const emptyList =['', '', '', ''];
     const Completionist = () => <span>Event Already Happened</span>;
 
     // Renderer callback with condition
@@ -48,12 +52,22 @@ function EventDetail(){
     };
 
     useEffect(()=>{
+        if(event !== null){
+            setLocation({
+                address: event._embedded.venues[0].name,
+                lat: +event._embedded.venues[0].location.latitude,
+                lng: +event._embedded.venues[0].location.longitude,
+              })
+        }
+    },[event])
+
+    useEffect(()=>{
         if(id){
             axios.get(`https://app.ticketmaster.com/discovery/v2/events?apikey=${process.env.REACT_APP_TICKETMASTER_KEY}&id=${id}&locale=*`)
             .then(res => {
                 if(res.data){
                     console.log(res.data._embedded.events[0])
-                    setEvent(res.data._embedded.events[0])
+                    setEvent(res.data._embedded.events[0]);
                 }
             })
         }
@@ -75,25 +89,74 @@ function EventDetail(){
                         event.images[8].width === 2048 ? event.images[8].url :
                         event.images[9].url} alt='event cover'
                     />
-                    <div className="picSubtitle"><span>{event.name}</span></div>
                 </div>    
-                <section className="eventDetail">
-                    <div className="leftSide">
-                        <div className="location">
-                            <FontAwesomeIcon icon="fa-solid fa-calendar-days" />
-                            {format(new Date(event.dates.start.dateTime), `E d LLL y - 'h' k:mm`)}
+                <section className="eventDetailContainer">
+                    <div className="picSubtitle"><span>{event.name}</span></div>
+                    <div className="eventDetail">
+                        <div className="leftSide">
+                            <div className="location">
+                                <FontAwesomeIcon icon="fa-solid fa-calendar-days" />
+                                {format(new Date(event.dates.start.dateTime), `E d LLL y - 'h' k:mm`)}
+                            </div>
+                            <div className="location">
+                                <FontAwesomeIcon icon="fa-solid fa-location-dot" />
+                                {event._embedded.venues[0].name}, {event._embedded.venues[0].city.name}
+                            </div>
+                            {location !== null &&
+                                <Map location={location} zoomLevel={12}/>
+                            }
                         </div>
-                        <div className="location">
-                            <FontAwesomeIcon icon="fa-solid fa-location-dot" />
-                            {event._embedded.venues[0].name}, {event._embedded.venues[0].city.name}
+                        <div className="rightSide">
+                            <div className="likeShare">
+                                <div className="profileIcon" title="I am Going">
+                                    <FontAwesomeIcon icon="fa-solid fa-check" className="icon"/>
+                                </div>
+                                <div className="profileIcon" title="I am Interested">
+                                    <FontAwesomeIcon icon="fa-regular fa-heart" className="icon"/>
+                                </div>
+                                <div className="profileIcon" title="Share">
+                                    <FontAwesomeIcon icon="fa-solid fa-share-nodes" className="icon"/>
+                                </div>
+                            </div>
+                            <div className="friendsGoing">
+                                <div className="interested">
+                                    <div className="boldText">Friends Interested:</div>
+                                    <div className="friendList">
+                                        {emptyList.map((singleElement,index)=>(
+                                            <div className={`profileIconTest friend${index}`} key={index}>
+                                                {index !== 3 &&
+                                                    <FontAwesomeIcon icon="fa-solid fa-user" className="iconTest"/>
+                                                }
+                                                {index === 3 &&
+                                                    <p className="smallNum">+{100 - 4}</p>
+                                                }
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="interested">
+                                    <div className="boldText">Friends Going:</div>
+                                    <div className="friendList">
+                                        {emptyList.map((singleElement,index)=>(
+                                            <div className={`profileIconTest friend${index}`} key={index}>
+                                                {index !== 3 &&
+                                                    <FontAwesomeIcon icon="fa-solid fa-user" className="iconTest"/>
+                                                }
+                                                {index === 3 &&
+                                                    <p className="smallNum">+{100 - 4}</p>
+                                                }
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            <Countdown date={event.dates.start.dateTime} renderer={renderer} />
+                            <a href={event.url} target="_blank" rel="noreferrer" className="buyTickets">
+                                <div className="btnText">Buy Tickets</div>
+                            </a>
                         </div>
                     </div>
-                    <div className="rightSide">
-                        <Countdown date={event.dates.start.dateTime} renderer={renderer} />
-                        <a href={event.url} target="_blank" rel="noreferrer" className="buyTickets">
-                            <div className="btnText">Buy Tickets</div>
-                        </a>
-                    </div>
+                    
                 </section>
             </>
             }
