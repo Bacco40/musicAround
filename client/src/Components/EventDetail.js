@@ -1,9 +1,10 @@
 import React, { useState, useEffect} from "react";
-import { useParams } from "react-router-dom";
+import { useParams , Link} from "react-router-dom";
 import axios from "axios";
 import { format } from 'date-fns';
 import Countdown from "react-countdown";
 import Map from './Map';
+import lineUp from './lineUp.png';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {faCalendarDays, faCheck, faLocationDot, faShareNodes} from '@fortawesome/free-solid-svg-icons';
@@ -98,10 +99,10 @@ function EventDetail(){
                                 <FontAwesomeIcon icon="fa-solid fa-calendar-days" />
                                 {format(new Date(event.dates.start.dateTime), `E d LLL y - 'h' k:mm`)}
                             </div>
-                            <div className="location">
-                                <FontAwesomeIcon icon="fa-solid fa-location-dot" />
+                            <Link to={`/location/${event._embedded.venues[0].id}`} className="location" id="locationInfo">
+                                <FontAwesomeIcon icon="fa-solid fa-location-dot"/>
                                 {event._embedded.venues[0].name}, {event._embedded.venues[0].city.name}
-                            </div>
+                            </Link>
                             {location !== null &&
                                 <Map location={location} zoomLevel={12}/>
                             }
@@ -156,7 +157,13 @@ function EventDetail(){
                             </a>
                         </div>
                     </div>
-                    
+                </section>
+                <section className="lineUp">
+                    <div className="eventSectionTitle">
+                        <img src={lineUp} alt='Line up' className="lineUpImg"/>
+                        <hr className="hrHome hrDetail"/>
+                        <hr className="hrHome hrDetail2" />
+                    </div>
                 </section>
             </>
             }

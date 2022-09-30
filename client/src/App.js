@@ -6,6 +6,7 @@ import ArtistDetail from './Components/ArtistDetail';
 import Profile from './Components/Profile';
 import {useEffect, useState} from 'react';
 import { Route, Routes} from 'react-router-dom';
+import LocationDetail from './Components/LocationDetail';
 
 function App() {
   const [position, setPosition] = useState(null);
@@ -38,6 +39,9 @@ function App() {
           }/>
           <Route path='/profile/:id' element={
             <Profile/>
+          }/>
+          <Route path='/location/:id' element={
+            <LocationDetail/>
           }/>
       </Routes>
       </main>
