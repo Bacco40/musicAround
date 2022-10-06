@@ -3,12 +3,12 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import { format } from 'date-fns';
 import Map from './Map';
-import Disco from './disco.jpg'
+import Disco from './disco.jpg';
+import SingleEvent from "./SingleEvent";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {faCalendarDays, faLocationDot, faShareNodes} from '@fortawesome/free-solid-svg-icons';
 import {faStar} from '@fortawesome/free-regular-svg-icons'
-import SingleEvent from "./SingleEvent";
 library.add(faLocationDot, faCalendarDays,faShareNodes,faStar);
 
 

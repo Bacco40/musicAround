@@ -3,6 +3,7 @@ import homePic from './homepage.jpg';
 import events from './Events.png';
 import artists from './Artists.png';
 import SingleElement from "./singleElement";
+import Audio from 'ts-audio';
 import { useState ,useEffect} from "react";
 import axios from 'axios';
 
@@ -35,8 +36,10 @@ function HomePage({position}){
     }
 
     function moveToSection(e){
-        setPrevSection(sectionNum);
-        setSectionNum(+e.target.attributes.value.value);
+        if(loading === false){
+            setPrevSection(sectionNum);
+            setSectionNum(+e.target.attributes.value.value);
+        }
     } 
 
     useEffect(()=>{

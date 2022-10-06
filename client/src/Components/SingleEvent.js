@@ -9,6 +9,7 @@ library.add(faLocationDot, faCalendarDays,faHeart,faShareNodes,faCheck);
 
 
 function SingleEvent({singleElement}){
+
     return(
         <div className="singleEvent">
             <Link to={`/event/${singleElement.id}`} className='singleEventContainer'>
@@ -24,10 +25,18 @@ function SingleEvent({singleElement}){
                 <div className="singleEventDetail">
                     <div>
                         <Link to={`/event/${singleElement.id}`} className='eventTitle'>{singleElement.name}</Link>
-                        <div className="locationData">
-                            <FontAwesomeIcon icon="fa-solid fa-calendar-days" />
-                            {format(new Date(singleElement.dates.start.dateTime), `E d LLL y - 'h' k:mm`)}
-                        </div>
+                        {singleElement.dates.start.dateTime &&
+                            <div className="locationData">
+                                <FontAwesomeIcon icon="fa-solid fa-calendar-days" />
+                                {format(new Date(singleElement.dates.start.dateTime), `E d LLL y - 'h' k:mm`)}
+                            </div>
+                        }
+                        {singleElement.dates.start.localDate && !singleElement.dates.start.dateTime &&
+                            <div className="locationData">
+                                <FontAwesomeIcon icon="fa-solid fa-calendar-days" />
+                                {format(new Date(singleElement.dates.start.localDate), `E d LLL y`)}
+                            </div>
+                        }
                     </div>
                     <a href={singleElement.url} target="_blank" rel="noreferrer" className="buyTickets2">
                         <div className="btnText">Buy Tickets</div>

@@ -5,6 +5,7 @@ require('../config/passport')(passport);
 
 // Require controller modules.
 const user_controller = require('../controllers/userController');
+const spotify_controller = require('../controllers/spotifyController');
 
 /// USER ROUTES ///
 
@@ -54,8 +55,12 @@ router.put('/addArtist/:id', passport.authenticate('jwt', { session: false }), u
 
 //PUT remove artist from favotite
 router.put('/removeArtist/:id', passport.authenticate('jwt', { session: false }), user_controller.removeArtist_user);
+*/
+///SPOTIFY ROUTES///
 
-
+//GET spotify token
+router.get('/spotify/token', spotify_controller.get_Token)
+/*
 /// EVENT ROUTES ///
 
 //POST add event to interested
