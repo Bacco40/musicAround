@@ -16,6 +16,7 @@ function ArtistDetail({getToken,token}){
     const [artist, setArtist] = useState(null);
     const [events, setEvents] = useState(null);
     const [playlist,setPlaylist] = useState(null);
+    const [loading, setLoading] = useState(true);
     const emptyList =['', '', '', ''];
     const wrapperRef = useRef(null);
     TopDistanceAlerter(wrapperRef);
@@ -42,7 +43,6 @@ function ArtistDetail({getToken,token}){
 
     useEffect(()=>{
         if(artist !== null){
-            console.log(artist)
             axios.get(`https://api.spotify.com/v1/artists/${id}/top-tracks?market=IT`, {
               headers: {
                 'Authorization': `Bearer ${token}` 
@@ -74,16 +74,20 @@ function ArtistDetail({getToken,token}){
         if(artist){
             axios.get(`https://app.ticketmaster.com/discovery/v2/attractions?apikey=${process.env.REACT_APP_TICKETMASTER_KEY}&keyword=${artist.name}&locale=*`)
             .then(res => {
-                if(res.data){
+                if(res.data._embedded){
                     if(res.data._embedded.attractions[0].name.toLowerCase() === artist.name.toLowerCase()){
                         axios.get(`https://app.ticketmaster.com/discovery/v2/events?apikey=${process.env.REACT_APP_TICKETMASTER_KEY}&attractionId=${res.data._embedded.attractions[0].id}&locale=*`)
                         .then(res => {
-                            if(res.data){
+                            if(res.data._embedded){
                                 console.log(res.data);
                                 setEvents(res.data._embedded.events)
                             }
+                            setLoading(false)
                         })
                     }
+                }
+                else{
+                    setLoading(false)
                 }
             })
         }
@@ -105,7 +109,7 @@ function ArtistDetail({getToken,token}){
     },[id])
 
     return(
-        <div>{artist && events &&
+        <div>{artist && 
             <>
                 <div className="concertPicContainer">
                     <img className="homePic artistDetailPic" src={
@@ -118,9 +122,16 @@ function ArtistDetail({getToken,token}){
                     <div className="picSubtitle"><span>{artist.name}</span></div>
                     <div className="localDetail">
                         <div className="leftSide locationEvent" >
-                            {events.map((singleElement,index)=>(
-                                <SingleEvent key={index} singleElement={singleElement}/>
+                            {events && events.map((singleElement,index)=>(
+                                <SingleEvent 
+                                  key={index} 
+                                  singleElement={singleElement} 
+                                  linkedTo = "artist" 
+                                />
                             ))}
+                            {events === null && loading === false &&
+                                <div className="noEvents">Sorry, no events from {artist.name} are scheduled</div>
+                            }
                         </div>
                         <div className="rightSide">
                             <div className="likeShare" id="likeShareLoc">

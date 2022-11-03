@@ -104,6 +104,7 @@ nav{
   display: grid;
   grid-template-columns: repeat(5,100%);
   overflow:hidden;
+  position: relative;
 }
 .section{
   padding: 35px 0;
@@ -182,7 +183,7 @@ nav{
   font-size: 6em;
   background:rgba(0, 0, 0, 60%);
   width: 80px;
-  margin-top: 95px;
+  margin-top: 35px;
   padding: 20px;
   text-align: center;
   z-index: 1;
@@ -212,7 +213,7 @@ nav{
   align-items: center;
   background-color: rgba(0, 0, 0, 60%), !important; 
 }
-.selectedSection{
+.selectedSectionArtists, .selectedSectionEvents{
   background-color: black;
   height: 3px;
   width: 30px;
@@ -242,7 +243,7 @@ nav{
 .location{
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
   font-weight: 500;
 }
 .buyTickets:before ,.buyTickets2:before{
@@ -386,10 +387,6 @@ nav{
   position: relative;
   z-index: 2;
 }
-.lineUp{
-  position: relative;
-  bottom: 50px;
-}
 .hrDetail{
   position: relative;
   right: 205px;
@@ -404,6 +401,13 @@ nav{
   cursor: pointer;
   color: #fff;
   text-decoration: underline;
+}
+#locationInfoSmall{
+  cursor: pointer;
+  color: #fff;
+  text-decoration: underline;
+  margin-top: 5px;
+  font-size: 20px;
 }
 .localDetail{
   display: grid;
@@ -569,6 +573,44 @@ nav{
 .icon2{
   color: #fff;
   transform: rotate(10deg);
+}
+.noEvents{
+  color: #fff;
+  font-weight: 500;
+}
+.longLineUp{
+  display:grid;
+  grid-template-columns: repeat(auto-fit,minmax(250px, 1fr));
+}
+.singleArtistLineUp{
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-decoration: none;
+}
+.imgContainer{
+  width: 100%;
+  padding-top: 100%; 
+  position: relative;
+  overflow: hidden;
+}
+.artistPicLineUp{
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  
+}
+.singleArtistDesc{
+  padding: 5px 10px;
+  font-size: 18px;
+  font-weight: bold;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
 }
 
 @keyframes changeScale {

@@ -40,6 +40,10 @@ function App() {
     navigator.geolocation.getCurrentPosition(successCallback);
   },[])
 
+  useEffect(()=>{
+    getToken()
+  },[])
+
   return (
     <div className="App">
       <header>
@@ -50,6 +54,8 @@ function App() {
           <Route path='/' element={
             <HomePage 
               position={position}
+              getToken={getToken}
+              token={token}
             />
           }/>
           <Route path='/event/:id' element={

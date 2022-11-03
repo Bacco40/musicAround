@@ -2,35 +2,62 @@ import React from "react";
 import homePic from './homepage.jpg';
 import events from './Events.png';
 import artists from './Artists.png';
-import SingleElement from "./singleElement";
-import Audio from 'ts-audio';
+import Carousel from "./Carousel";
+import HomeNav from "./homeNav";
 import { useState ,useEffect} from "react";
 import axios from 'axios';
 
 
-function HomePage({position}){
-    const emptyList =['', '', '', ''];
+function HomePage({position, token}){
     const [eventsAround, setEventsAround] = useState(null);
+    const [topArtists, setTopArtists] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [prevSection, setPrevSection] = useState(null)
-    const [sectionNum, setSectionNum] = useState(1)
+    const [loading1, setLoading1] = useState(true);
+    const [prevSection, setPrevSection] = useState(null);
+    const [prevSection1, setPrevSection1] = useState(null);
+    const [sectionNum, setSectionNum] = useState(1);
+    const [sectionNum1, setSectionNum1] = useState(1);
+
 
     function changeSection(e){
-        setPrevSection(sectionNum)
         if(e.target.className === 'arrow leftArrow'){
-            if(sectionNum === 1){
-                setSectionNum(5)
+            if(e.target.id === 'eventCarousel'){
+                setPrevSection(sectionNum)
+                if(sectionNum === 1){
+                    setSectionNum(5)
+                }
+                else{
+                    setSectionNum(sectionNum-1)
+                }
             }
-            else{
-                setSectionNum(sectionNum-1)
+            if(e.target.id === 'artistCarousel'){
+                setPrevSection1(sectionNum1)
+                if(sectionNum1 === 1){
+                    setSectionNum1(5)
+                }
+                else{
+                    setSectionNum1(sectionNum1-1)
+                }
             }
         }
         else{
-            if(sectionNum === 5){
-                setSectionNum(1)
+            if(e.target.id === 'eventCarousel'){
+                setPrevSection(sectionNum)
+                if(sectionNum === 5){
+                    setSectionNum(1)
+                }
+                else{
+                    setSectionNum(sectionNum+1)
+                }
             }
             else{
-                setSectionNum(sectionNum+1)
+                setPrevSection1(sectionNum1)
+                if(sectionNum1 === 5){
+                    setSectionNum1(1)
+                }
+                else{
+                    setSectionNum1(sectionNum1+1)
+                } 
             }
         }
     }
@@ -42,15 +69,51 @@ function HomePage({position}){
         }
     } 
 
+    function moveToSection1(e){
+        if(loading1 === false){
+            setPrevSection1(sectionNum1);
+            setSectionNum1(+e.target.attributes.value.value);
+        }
+    }
+
+    async function recoveArtists(data){
+        let idList = [];
+        let artistList = [];
+        for(let i=0;i<data.tracks.length; i++){
+            idList.indexOf(data.tracks[i].artists[0].id) === -1 ? idList.push(data.tracks[i].artists[0].id) : console.log("This item already exists");
+        }
+        for(let a=0; a<20; a++){
+            await axios.get(`https://api.spotify.com/v1/artists/${idList[a]}`, {
+                headers: {
+                'Authorization': `Bearer ${token}` 
+                }}
+            )
+            .then(res => {
+                if(res.data){
+                    artistList.push({
+                        type: "artist",
+                        name: res.data.name,
+                        id: res.data.id,
+                        genres: res.data.genres,
+                        images: res.data.images
+                    })
+                }
+            }
+            ) 
+        }
+        setTopArtists(artistList);
+        setLoading1(false);
+    }
+
     useEffect(()=>{
         if(prevSection !== null){
             if(prevSection > sectionNum){
-                document.getElementById(`${sectionNum}`).classList.add("activeLeft"); 
+                document.getElementById(`sectionEvents${sectionNum}`).classList.add("activeLeft"); 
             }
             else{
-                document.getElementById(`${sectionNum}`).classList.add("activeRight"); 
+                document.getElementById(`sectionEvents${sectionNum}`).classList.add("activeRight"); 
             }
-            const selected = document.querySelectorAll('.selectedSection');
+            const selected = document.querySelectorAll('.selectedSectionEvents');
             
             for(let i = 0; i < selected.length; i++){
                 if(+selected[i].attributes.value.value === sectionNum){
@@ -64,11 +127,36 @@ function HomePage({position}){
     },[sectionNum])
 
     useEffect(()=>{
-        if(eventsAround !== null){
-            const selected = document.querySelectorAll('.selectedSection');
+        if(prevSection1 !== null){
+            if(prevSection1 > sectionNum1){
+                document.getElementById(`sectionArtist${sectionNum1}`).classList.add("activeLeft"); 
+            }
+            else{
+                document.getElementById(`sectionArtist${sectionNum1}`).classList.add("activeRight"); 
+            }
+            const selected = document.querySelectorAll('.selectedSectionArtists');
+            
+            for(let i = 0; i < selected.length; i++){
+                if(+selected[i].attributes.value.value === sectionNum1){
+                    selected[i].style.cssText = 'background-color: #ffff';
+                }
+                else{
+                    selected[i].style.cssText = 'background-color: black';  
+                }
+            }
+        }
+    },[sectionNum1])
+
+    useEffect(()=>{
+        if(eventsAround !== null && sectionNum === 1){
+            const selected = document.querySelectorAll('.selectedSectionEvents');
             selected[0].style.cssText = 'background-color: #ffff';
         }
-    },[eventsAround])
+        if(topArtists !== null && sectionNum === 1){
+            const selected = document.querySelectorAll('.selectedSectionArtists');
+            selected[0].style.cssText = 'background-color: #ffff';
+        }
+    },[eventsAround, topArtists])
 
     useEffect(()=>{
         if(position !== null && eventsAround === null){
@@ -82,6 +170,21 @@ function HomePage({position}){
         }
     },[position])
 
+    useEffect(()=>{
+        if(token !== null && topArtists === null){
+            axios.get(`https://api.spotify.com/v1/recommendations?limit=30&market=IT&seed_artists=1h6Cn3P4NGzXbaXidqURXs&seed_genres=edm&min_popularity=20`, {
+              headers: {
+                'Authorization': `Bearer ${token}` 
+              }}
+            )
+            .then(res => {
+                if(res.data){
+                    recoveArtists(res.data)
+                }
+            })
+        }
+    },[token,topArtists])
+
     return(
         <div className="home">
             <div className="concertPicContainer">
@@ -94,104 +197,37 @@ function HomePage({position}){
                     <hr className="hrHome"/>
                 </div>
                 <div className="eventContainer">
-                    {eventsAround && loading === false &&
-                    <>
-                        <div className="arrow leftArrow" value={sectionNum} onClick={(e)=>changeSection(e)}>‹</div>
-                        {sectionNum === 1 &&
-                            <div className="section" id={sectionNum}>
-                                {eventsAround.map((singleElement,index)=>(
-                                    <React.Fragment key={index}>
-                                        {index <= 3 &&
-                                            <SingleElement singleElement={singleElement}/>
-                                        }
-                                    </React.Fragment>
-                                ))}
-                            </div>
-                        }
-                        {sectionNum === 2 &&
-                            <div className="section" id={sectionNum}>
-                                {eventsAround && eventsAround.map((singleElement,index)=>(
-                                    <React.Fragment key={index}>
-                                        {index <= 7 && index > 3 &&
-                                            <SingleElement singleElement={singleElement}/>
-                                        }
-                                    </React.Fragment>
-                                ))}
-                            </div>
-                        }
-                        {sectionNum === 3 &&
-                            <div className="section" id={sectionNum}>
-                                {eventsAround && eventsAround.map((singleElement,index)=>(
-                                    <React.Fragment key={index}>
-                                        {index <= 11 && index > 7 &&
-                                            <SingleElement singleElement={singleElement}/>
-                                        }
-                                    </React.Fragment>
-                                ))}
-                            </div>
-                        }
-                        {sectionNum === 4 &&
-                            <div className="section" id={sectionNum}>
-                                {eventsAround && eventsAround.map((singleElement,index)=>(
-                                    <React.Fragment key={index}>
-                                        {index <= 15 && index > 11 &&
-                                            <SingleElement singleElement={singleElement}/>
-                                        }
-                                    </React.Fragment>
-                                ))}
-                            </div>
-                        }
-                        {sectionNum === 5 &&
-                            <div className="section" id={sectionNum}>
-                                {eventsAround && eventsAround.map((singleElement,index)=>(
-                                    <React.Fragment key={index}>
-                                        {index <= 19 && index > 15 &&
-                                            <SingleElement singleElement={singleElement}/>
-                                        }
-                                    </React.Fragment>
-                                ))}
-                            </div>
-                        }
-                        <div className="arrow rigthArrow" value={sectionNum} onClick={(e)=>changeSection(e)}>›</div>
-                    </>
-                    }
-                    {loading === true &&
-                        <div className="section">
-                            {emptyList.map((singleElement,index)=>(
-                                <div className="singleElementContainer" key={index}>
-                                    <div className="emptyPic"></div>
-                                    <div className="emptyDesc">
-                                        <div className="fakeText1"></div>
-                                        <div className="fakeText2"></div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    }
+                    <Carousel
+                        elementArray = {eventsAround}
+                        sectionNum = {sectionNum}
+                        changeSection = {changeSection}
+                        linkTo = {"event"}
+                        loading = {loading}
+                    />
                 </div>
-                <div className="selectedPage">
-                    <div className="selectedContainer" value='1' onClick={(e) => moveToSection(e) }>
-                        <div className="selectedSection" value='1'></div>
-                    </div>
-                    <div className="selectedContainer" value='2' onClick={(e) => moveToSection(e) }>
-                        <div className="selectedSection" value='2'></div>
-                    </div>
-                    <div className="selectedContainer" value='3' onClick={(e) => moveToSection(e) }>
-                        <div className="selectedSection" value='3'></div>
-                    </div>
-                    <div className="selectedContainer" value='4' onClick={(e) => moveToSection(e) }>
-                        <div className="selectedSection" value='4'></div>
-                    </div>
-                    <div className="selectedContainer" value='5' onClick={(e) => moveToSection(e) }>
-                        <div className="selectedSection" value='5'></div>
-                    </div>
-                </div>
+                <HomeNav
+                    moveToSection = {moveToSection}
+                    linkedTo = {"event"}
+                />
             </section>
             <section className="artistSection">
                 <div className="eventSectionTitle">
                     <img src={artists} alt='Popular artists'/>
                     <hr className="hrHome"/>
                 </div>
+                <div className="eventContainer">
+                    <Carousel
+                      elementArray = {topArtists}
+                      sectionNum = {sectionNum1}
+                      changeSection = {changeSection}
+                      linkTo = {"artist"}
+                      loading = {loading1}
+                    />
+                </div>
+                <HomeNav
+                    moveToSection = {moveToSection1}
+                    linkedTo = {"artist"}
+                />
             </section>
         </div>
     )

@@ -8,7 +8,7 @@ import {faHeart} from '@fortawesome/free-regular-svg-icons'
 library.add(faLocationDot, faCalendarDays,faHeart,faShareNodes,faCheck);
 
 
-function SingleEvent({singleElement}){
+function SingleEvent({singleElement, linkedTo}){
 
     return(
         <div className="singleEvent">
@@ -25,6 +25,13 @@ function SingleEvent({singleElement}){
                 <div className="singleEventDetail">
                     <div>
                         <Link to={`/event/${singleElement.id}`} className='eventTitle'>{singleElement.name}</Link>
+                        {linkedTo === 'artist' &&
+                            <Link to={`/location/${singleElement._embedded.venues[0].id}`} className="location" id="locationInfoSmall">
+                                <FontAwesomeIcon icon="fa-solid fa-location-dot"/>
+                                {singleElement._embedded.venues[0].name}, {singleElement._embedded.venues[0].city.name}
+                            </Link>
+                        }
+                        
                         {singleElement.dates.start.dateTime &&
                             <div className="locationData">
                                 <FontAwesomeIcon icon="fa-solid fa-calendar-days" />

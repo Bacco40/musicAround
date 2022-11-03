@@ -17,8 +17,9 @@ library.add(faLocationDot, faCalendarDays,faHeart,faShareNodes,
 
 function EventDetail({getToken,token}){
     const [event,setEvent] = useState(null);
-    const [artistId, setArtistId] = useState(null);
-    const [artist, setArtist] = useState(null);
+    const [artistList, setArtistList] = useState(null);
+    const [artists, setArtists] = useState(null);
+    const [isLoading, setIsLoading] = useState(null);
     const {id} = useParams();
     const [location,setLocation] = useState(null);
     const [playlist,setPlaylist] = useState(null);
@@ -57,25 +58,64 @@ function EventDetail({getToken,token}){
         );
     }
     };
-
-    function recoveArtistId(name){
-        axios.get(`https://api.spotify.com/v1/search?q=${name}&type=artist&limit=10`, {
-            headers: {
-            'Authorization': `Bearer ${token}` 
-            }}
-        )
-        .then(res => {
-            if(res.data){
-                if(res.data.artists.items[0] !== undefined && res.data.artists.items[0].name === name){
-                    setArtistId(res.data.artists.items[0].id)
-                }
+    
+    async function recoveArtistList(){
+        const artistDetailList = [];
+        for(let i = 0; i < artistList.length; i++){
+            setIsLoading(true)
+            if(artistList[i].length === 22){
+                await axios.get(`https://api.spotify.com/v1/artists/${artistList[i]}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}` 
+                    }}
+                )
+                .then(res => {
+                    if(res.data){
+                        artistDetailList.push(res.data)
+                    }
+                })
             }
-        })
+        }
+        console.log(artistDetailList)
+        if(artistDetailList.length > 0){
+            setIsLoading(false)
+            setArtists(artistDetailList)
+        }
+        else{
+            setIsLoading(null) 
+        }
+    }
+
+    async function recoveArtistId(){
+        const idList = [];
+        for( let i = 0; i < event._embedded.attractions.length; i++){
+            if(event._embedded.attractions[i].externalLinks && event._embedded.attractions[i].externalLinks.spotify)
+            {
+                idList.push(event._embedded.attractions[i].externalLinks.spotify[0].url.substring(32, 54))
+            }
+            else{
+                if(event._embedded.attractions[i].name){
+                    await axios.get(`https://api.spotify.com/v1/search?q=${event._embedded.attractions[i].name}&type=artist&limit=10`, {
+                        headers: {
+                        'Authorization': `Bearer ${token}` 
+                        }}
+                    )
+                    .then(res => {
+                        if(res.data){
+                            if(res.data.artists.items[0] !== undefined && res.data.artists.items[0].name === event._embedded.attractions[i].name){
+                                idList.push(res.data.artists.items[0].id)
+                            }
+                        }
+                    })
+                }
+            } 
+        }
+        setArtistList(idList)
     }
 
     useEffect(()=>{
-        if(artist !== null){
-            axios.get(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=IT`, {
+        if(artists !== null && artists.length === 1){
+            axios.get(`https://api.spotify.com/v1/artists/${artistList[0]}/top-tracks?market=IT`, {
               headers: {
                 'Authorization': `Bearer ${token}` 
               }}
@@ -100,22 +140,13 @@ function EventDetail({getToken,token}){
                 }
             })
         }
-    },[artist])
+    },[artists])
 
     useEffect(()=>{
         if(token !== null){
-            axios.get(`https://api.spotify.com/v1/artists/${artistId}`, {
-              headers: {
-                'Authorization': `Bearer ${token}` 
-              }}
-            )
-            .then(res => {
-                if(res.data){
-                    setArtist(res.data)
-                }
-            })
+            recoveArtistList()
         }
-    },[artistId])
+    },[artistList])
 
     useEffect(()=>{
         if(event !== null && token !== null){
@@ -125,13 +156,7 @@ function EventDetail({getToken,token}){
                 lng: +event._embedded.venues[0].location.longitude,
               })
             if(event._embedded.attractions ){
-                if(event._embedded.attractions[0].externalLinks && event._embedded.attractions[0].externalLinks.spotify)
-                {
-                    setArtistId(event._embedded.attractions[0].externalLinks.spotify[0].url.substring(32, 54))
-                }
-                else{
-                    recoveArtistId(event._embedded.attractions[0].name)
-                }
+                recoveArtistId()
             }
         }
     },[token])
@@ -143,6 +168,7 @@ function EventDetail({getToken,token}){
                 if(res.data){
                     getToken()
                     setEvent(res.data._embedded.events[0]);
+                    console.log(res.data._embedded.events[0])
                 }
             })
         }
@@ -240,69 +266,94 @@ function EventDetail({getToken,token}){
                         </div>
                     </div>
                 </section>
-                {artist &&
+                {isLoading !== null &&
                     <section className="lineUp">
                         <div className="eventSectionTitle">
                             <img src={lineUp} alt='Line up' className="lineUpImg"/>
                             <hr className="hrHome hrDetail"/>
                             <hr className="hrHome hrDetail2" />
                         </div>
-                        <div className="artistDetail">
-                            <Link to={`/artist/${artistId}`}>
-                                <img className = 'artistPic' src={
-                                    artist.images[0].width === 640 ? artist.images[0].url :
-                                    artist.images[1].width === 640 ? artist.images[1].url :
-                                    artist.images[2].width } alt={artist.name}
-                                />
-                            </Link>
-                            <div className="eventSheet">
-                                <div className="singleEventDetail">
-                                    <div className="artistInfo">
-                                        <Link to={`/artist/${artistId}`} className='noUnderline'>
-                                            <div className='eventTitle artistName'>{artist.name}</div>
-                                        </Link>
-                                        <div className="genresContainer">
-                                            {artist.genres.map((singleGenre,index)=>(
-                                                <a key={index} href='/'>{singleGenre}</a>
-                                            ))}
-                                        </div>
-                                        {event._embedded.attractions && event._embedded.attractions[0].externalLinks &&
-                                            <div className="artistLinks">
-                                                {event._embedded.attractions[0].externalLinks.instagram &&
-                                                    <a className="profileIcon" target="_blank" rel="noreferrer" href={event._embedded.attractions[0].externalLinks.instagram[0].url}>
-                                                        <FontAwesomeIcon icon="fa-brands fa-instagram" className="icon"/>
-                                                    </a>
-                                                }
-                                                {event._embedded.attractions[0].externalLinks.facebook &&
-                                                    <a className="profileIcon" target="_blank" rel="noreferrer" href={event._embedded.attractions[0].externalLinks.facebook[0].url}>
-                                                        <FontAwesomeIcon icon="fa-brands fa-facebook-f" className="icon"/>
-                                                    </a>
-                                                }
-                                                {event._embedded.attractions[0].externalLinks.spotify &&
-                                                    <a className="profileIcon" target="_blank" rel="noreferrer" href={event._embedded.attractions[0].externalLinks.spotify[0].url}>
-                                                        <FontAwesomeIcon icon="fa-brands fa-spotify" className="icon"/>
-                                                    </a>
-                                                }
-                                                {event._embedded.attractions[0].externalLinks.youtube &&
-                                                    <a className="profileIcon" target="_blank" rel="noreferrer" href={event._embedded.attractions[0].externalLinks.youtube[0].url}>
-                                                        <FontAwesomeIcon icon="fa-brands fa-youtube" className="icon"/>
-                                                    </a>
-                                                }
+                        {artists && artists.length >1 &&
+                            <div className="artistDetail longLineUp">
+                                {artists.map((artist,index)=>(
+                                    <div key={index} className="singleArtistLineUp">
+                                        <Link to={`/artist/${artist.id}`} >
+                                            <div className="imgContainer">
+                                                <img className = 'artistPicLineUp' src={
+                                                    artist.images[0].width === 640 ? artist.images[0].url :
+                                                    artist.images[1].width === 640 ? artist.images[1].url :
+                                                    artist.images[2].width } alt={artist.name}
+                                                />
                                             </div>
-                                        }
+                                        </Link> 
+                                        <div className="singleArtistDesc">
+                                            <Link to={`/artist/${artist.id}`} >{artist.name}</Link>
+                                            <a target="_blank" rel="noreferrer" href={artist.external_urls.spotify}>
+                                                <FontAwesomeIcon icon="fa-brands fa-spotify" className="icon"/>
+                                            </a>
+                                        </div>
                                     </div>
-                                    <Player songs={playlist}/>
-                                </div>
-                                <div className="likeShare">
-                                    <div className="profileIcon" title="Add To Favorite">
-                                        <FontAwesomeIcon icon="fa-regular fa-star" className="icon"/>
+                                ))}
+                            </div>
+                        }
+                        {artists && artists.length === 1 &&
+                            <div className="artistDetail">
+                                <Link to={`/artist/${artistList[0]}`}>
+                                    <img className = 'artistPic' src={
+                                        artists[0].images[0].width === 640 ? artists[0].images[0].url :
+                                        artists[0].images[1].width === 640 ? artists[0].images[1].url :
+                                        artists[0].images[2].width } alt={artists[0].name}
+                                    />
+                                </Link>
+                                <div className="eventSheet">
+                                    <div className="singleEventDetail">
+                                        <div className="artistInfo">
+                                            <Link to={`/artist/${artistList[0]}`} className='noUnderline'>
+                                                <div className='eventTitle artistName'>{artists[0].name}</div>
+                                            </Link>
+                                            <div className="genresContainer">
+                                                {artists[0].genres.map((singleGenre,index)=>(
+                                                    <a key={index} href='/'>{singleGenre}</a>
+                                                ))}
+                                            </div>
+                                            {event._embedded.attractions && event._embedded.attractions[0].externalLinks &&
+                                                <div className="artistLinks">
+                                                    {event._embedded.attractions[0].externalLinks.instagram &&
+                                                        <a className="profileIcon" target="_blank" rel="noreferrer" href={event._embedded.attractions[0].externalLinks.instagram[0].url}>
+                                                            <FontAwesomeIcon icon="fa-brands fa-instagram" className="icon"/>
+                                                        </a>
+                                                    }
+                                                    {event._embedded.attractions[0].externalLinks.facebook &&
+                                                        <a className="profileIcon" target="_blank" rel="noreferrer" href={event._embedded.attractions[0].externalLinks.facebook[0].url}>
+                                                            <FontAwesomeIcon icon="fa-brands fa-facebook-f" className="icon"/>
+                                                        </a>
+                                                    }
+                                                    {event._embedded.attractions[0].externalLinks.spotify &&
+                                                        <a className="profileIcon" target="_blank" rel="noreferrer" href={event._embedded.attractions[0].externalLinks.spotify[0].url}>
+                                                            <FontAwesomeIcon icon="fa-brands fa-spotify" className="icon"/>
+                                                        </a>
+                                                    }
+                                                    {event._embedded.attractions[0].externalLinks.youtube &&
+                                                        <a className="profileIcon" target="_blank" rel="noreferrer" href={event._embedded.attractions[0].externalLinks.youtube[0].url}>
+                                                            <FontAwesomeIcon icon="fa-brands fa-youtube" className="icon"/>
+                                                        </a>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                        <Player songs={playlist}/>
                                     </div>
-                                    <div className="profileIcon" title="Share">
-                                        <FontAwesomeIcon icon="fa-solid fa-share-nodes" className="icon"/>
+                                    <div className="likeShare">
+                                        <div className="profileIcon" title="Add To Favorite">
+                                            <FontAwesomeIcon icon="fa-regular fa-star" className="icon"/>
+                                        </div>
+                                        <div className="profileIcon" title="Share">
+                                            <FontAwesomeIcon icon="fa-solid fa-share-nodes" className="icon"/>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        }
                     </section>
                 }
             </>
